@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0b0f14">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gym Tracker">
+<title>Gym Tracker | جدول التمرين</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0b0f14;--card:#121821;--card2:#18202b;--line:#232d3a;--txt:#e8eef5;--mut:#8a97a8;--acc:#22d3a6;--acc2:#3b82f6;--rir:#a78bfa;--danger:#ef4444;--warn:#f59e0b;--r:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Cairo',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:100px;background-image:radial-gradient(circle at 100% 0,rgba(34,211,166,.09),transparent 40%),radial-gradient(circle at 0 100%,rgba(59,130,246,.09),transparent 45%);background-attachment:fixed}
+button,input,select,textarea{font-family:inherit;color:inherit}
+header{position:sticky;top:0;z-index:30;background:rgba(11,15,20,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:12px 18px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:800;font-size:1.25rem;letter-spacing:.3px}.logo span{color:var(--acc)}
+.hdate{color:var(--mut);font-size:.85rem}
+main{max-width:760px;margin:0 auto;padding:16px}
+.vt{font-size:1.35rem;font-weight:800;margin:4px 0 14px}
+.card{background:linear-gradient(180deg,var(--card),#0f141c);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px;animation:up .25s ease}
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.mut{color:var(--mut)}.sm{font-size:.82rem}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none}
+.chip{flex-shrink:0;border:1px solid var(--line);background:var(--card);padding:8px 18px;border-radius:999px;cursor:pointer;font-weight:700;transition:.2s}
+.chip.on{background:var(--acc);color:#04221b;border-color:var(--acc);box-shadow:0 4px 18px rgba(34,211,166,.35)}
+.inp{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:.95rem;width:100%;outline:none;transition:border .15s;min-width:0}
+.inp:focus{border-color:var(--acc)}
+.inp.num{direction:ltr;text-align:center}
+.inp.rir{border-color:rgba(167,139,250,.35)}
+.inp.rir:focus{border-color:var(--rir)}
+textarea.inp{resize:vertical}
+.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:700;cursor:pointer;transition:transform .1s,opacity .2s;font-size:.95rem}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:linear-gradient(135deg,var(--acc),#14b8a6);color:#04221b;width:100%}
+.btn.ghost{background:var(--card2);border:1px solid var(--line)}
+.btn.danger{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.35)}
+.btn.sm{padding:6px 12px;font-size:.82rem;border-radius:10px}
+.btn.big{padding:14px;font-size:1.05rem}
+.row-between{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.lbl{display:flex;flex-direction:column;gap:4px;font-size:.82rem;color:var(--mut)}
+.lbl .inp{color:var(--txt);width:auto}
+.prog{flex:1;min-width:150px}
+.bar{height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s}
+.ex-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.ex-name{font-weight:800;font-size:1.05rem}
+.badge{display:inline-block;font-size:.75rem;font-weight:700;padding:2px 9px;border-radius:999px;background:rgba(167,139,250,.14);color:var(--rir);border:1px solid rgba(167,139,250,.3);margin:4px 0 2px}
+.set-row{display:grid;grid-template-columns:30px 1fr 1fr 58px 40px;gap:6px;align-items:center;margin-bottom:7px;padding:4px;border-radius:12px;transition:background .2s}
+.set-row.head{font-size:.72rem;color:var(--mut);text-align:center;margin-bottom:2px}
+.set-row.head .rh{color:var(--rir)}
+.set-row.done{background:rgba(34,211,166,.09)}
+.set-n{width:28px;height:28px;border-radius:50%;background:var(--card2);display:grid;place-items:center;font-weight:700;font-size:.8rem;margin:auto}
+.set-row.done .set-n{background:var(--acc);color:#04221b}
+.set-row .inp{padding:9px 4px}
+.tick{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card2);cursor:pointer;font-size:1.1rem;color:var(--mut)}
+.set-row.done .tick{background:var(--acc);color:#04221b;border-color:var(--acc)}
+.ex-foot{display:flex;gap:8px;margin-top:4px}
+.actions{display:flex;gap:10px;position:sticky;bottom:84px;z-index:5}
+.actions .ghost{flex-shrink:0}
+.day-head{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.inp.title{font-weight:800;font-size:1.05rem}
+.icons{display:flex;gap:4px}
+.ic{width:34px;height:36px;flex-shrink:0;border-radius:9px;border:1px solid var(--line);background:var(--card2);cursor:pointer;font-size:.9rem}
+.ic:disabled{opacity:.3;cursor:default}
+.ic.danger{color:#fca5a5;border-color:rgba(239,68,68,.35)}
+.plan-item{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
+.plan-top{display:flex;gap:6px;align-items:center;margin-bottom:8px}
+.plan-top .n{width:22px;height:22px;border-radius:50%;background:var(--bg);display:grid;place-items:center;font-size:.75rem;color:var(--mut);flex-shrink:0}
+.plan-top .inp{background:var(--bg)}
+.plan-bot{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mini{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--mut)}
+.mini .inp{width:64px;padding:7px 4px;background:var(--bg)}
+.mini.r{color:var(--rir)}
+.plan-bot .icons{margin-inline-start:auto}
+.info{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.3);font-size:.88rem;line-height:1.7}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.stat b{display:block;font-size:1.3rem;color:var(--acc);direction:ltr}
+.stat span{font-size:.75rem;color:var(--mut)}
+details.log summary{list-style:none;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+details.log summary::-webkit-details-marker{display:none}
+.chev{transition:.2s;color:var(--mut);font-size:1.2rem}
+details[open] .chev{transform:rotate(180deg)}
+.log-body{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.log-ex{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:.9rem}
+.log-ex .mut{direction:ltr;text-align:left}
+.rv{color:var(--rir);font-size:.8em}
+.note{margin:10px 0;font-size:.88rem;color:var(--mut)}
+.log-btns{display:flex;gap:8px;margin-top:10px}
+.chart-box{height:250px;position:relative}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:center}
+th{color:var(--mut);font-weight:600;font-size:.78rem}
+td.ltr{direction:ltr}
+.empty{text-align:center;padding:40px 20px;color:var(--mut)}
+.empty .em{font-size:3rem;margin-bottom:8px}
+.set-list{display:flex;flex-direction:column;gap:10px}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(15,20,28,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.nav button{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:.72rem;color:var(--mut);padding:6px 10px;border-radius:12px;transition:.2s}
+.nav button i{font-style:normal;font-size:1.3rem}
+.nav button.on{color:var(--acc);background:rgba(34,211,166,.1)}
+.timer{position:fixed;left:14px;bottom:84px;z-index:35;display:flex;gap:6px;align-items:center}
+.t-main{border:1px solid var(--line);background:var(--card2);border-radius:999px;padding:9px 16px;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.4);direction:ltr}
+.t-main.run{background:var(--acc2);border-color:var(--acc2);color:#fff;animation:pulse 1.5s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(59,130,246,.15)}}
+.t-sm{border:1px solid var(--line);background:var(--card2);border-radius:999px;width:42px;height:38px;cursor:pointer;font-weight:700;font-size:.8rem}
+.hide{display:none}
+#toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);opacity:0;background:var(--card2);border:1px solid var(--acc);padding:11px 20px;border-radius:14px;z-index:60;transition:.3s;font-weight:700;pointer-events:none;max-width:90vw;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.warn{border-color:var(--warn)}
+#loading{text-align:center;padding:60px;color:var(--mut)}
+@media(min-width:700px){.timer{left:calc(50% - 360px)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">💪 Gym<span>Tracker</span></div>
+  <div class="hdate" id="hdate"></div>
+</header>
+
+<main id="app"><div id="loading">جاري التحميل...</div></main>
+
+<div class="timer" id="timer">
+  <button class="t-main" id="tMain">⏱ راحة</button>
+  <button class="t-sm hide" id="tPlus">+15</button>
+  <button class="t-sm hide" id="tStop">✕</button>
+</div>
+
+<nav class="nav">
+  <button data-view="workout"><i>🏋️</i>التمرين</button>
+  <button data-view="plan"><i>📋</i>الجدول</button>
+  <button data-view="history"><i>🗓️</i>السجل</button>
+  <button data-view="progress"><i>📈</i>التقدم</button>
+  <button data-view="settings"><i>⚙️</i>إعدادات</button>
+</nav>
+
+<div id="toast"></div>
+<input type="file" id="importFile" accept=".json,application/json" class="hide">
+
+<script>
+const KEY='gym-tracker-v1';
+const uid=()=>Math.random().toString(36).slice(2,10);
+const today=()=>new Date().toLocaleDateString('en-CA');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s||'').trim().toLowerCase();
+const $=s=>document.querySelector(s);
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const fmtDate=d=>new Date(d+'T00:00').toLocaleDateString('ar-EG-u-nu-latn',{weekday:'short',day:'numeric',month:'short'});
+const hasRir=v=>v!==null&&v!==undefined&&v!=='';
+const fmtSet=s=>`${s.w}×${s.r}`+(hasRir(s.rir)?` <span class="rv">@${esc(s.rir)}</span>`:'');
+const isNum=v=>/^\d+(\.\d+)?$/.test(String(v).trim());
+const app=$('#app');
+
+const DEFAULT_PROGRAM=[
+ {name:'اليوم 1',ex:[['Chest Incline Press Machine',2],['Wide Grip Lat Pulldown',2],['Lateral Raise (DB / Machine)',3],['T-Bar Row',1],['Shoulder Press',2],['Assisted No-Cheat Biceps Curl',2],['Cable Shrugs',2],['Lying Leg Curl',2],['Leg Extension',2],['Calf Raises',2]]},
+ {name:'اليوم 2',ex:[['Incline DB Press',2],['Lat Pulldown',2],['Butterfly Machine',1],['Single-Arm Y Raises',2],['T-Bar Row',2],['Single-Arm Triceps Pushdown',2],['Reverse Butterfly',2],['Cable Shrugs',2],['Leg Press',2],['Leg Extension',2],['Adductors',1],['Wrist Curl',2],['Cable Crunches',2]]},
+ {name:'اليوم 3',ex:[['T-Bar Row',2],['SLDL',2],['Chest Press Machine',2],['Single-Arm Lat Pulldown',2],['Cable Lateral Raise',2],['Butterfly Machine',1],['DB Preacher Curl',2],['Single-Arm Overhead Triceps',3],['Cable Reverse Curls (Forearms)',1],['Calf Raises',2]]}
+];
+const buildDays=()=>DEFAULT_PROGRAM.map(d=>({id:uid(),name:d.name,exercises:d.ex.map(([n,s])=>({id:uid(),name:n,sets:s,rir:''}))}));
+const buildDefault=()=>({version:2,days:buildDays(),logs:[],draft:{},ui:{view:'workout',dayId:null,progEx:null},rest:90});
+
+/* ---------- Storage ---------- */
+const Store={
+  async get(){
+    if(window.storage){try{const r=await window.storage.get(KEY,false);return r?JSON.parse(r.value):null}catch(e){return null}}
+    try{const v=localStorage.getItem(KEY);return v?JSON.parse(v):null}catch(e){return null}
+  },
+  async set(v){
+    const s=JSON.stringify(v);
+    if(window.storage){try{await window.storage.set(KEY,s,false)}catch(e){console.error(e)}return}
+    try{localStorage.setItem(KEY,s)}catch(e){console.error(e)}
+  }
+};
+let state,saveT;
+function save(){clearTimeout(saveT);saveT=setTimeout(()=>Store.set(state),300)}
+
+function toast(msg,type){const t=$('#toast');t.textContent=msg;t.className='show '+(type||'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='',2800)}
+const empty=(msg,em='🏋️')=>`<div class="card empty"><div class="em">${em}</div>${msg}</div>`;
+
+/* ---------- Helpers ---------- */
+function curDay(){return state.days.find(d=>d.id===state.ui.dayId)||state.days[0]}
+function sortedLogs(asc){return [...state.logs].sort((a,b)=>asc?(a.date.localeCompare(b.date)||a.ts-b.ts):(b.date.localeCompare(a.date)||b.ts-a.ts))}
+function lastEntry(name){const n=norm(name);for(const l of sortedLogs(false)){const e=l.entries.find(e=>norm(e.exName)===n);if(e)return{date:l.date,sets:e.sets}}return null}
+function bestWeight(name){let b=null;const n=norm(name);state.logs.forEach(l=>l.entries.forEach(e=>{if(norm(e.exName)===n)e.sets.forEach(s=>{if(b===null||s.w>b)b=s.w})}));return b}
+const volume=l=>l.entries.reduce((a,e)=>a+e.sets.reduce((x,s)=>x+s.w*s.r,0),0);
+const newSet=(w='')=>({w,r:'',rir:'',d:false});
+function getDraft(day){
+  const dr=state.draft[day.id]=state.draft[day.id]||{date:today(),note:'',ex:{}};
+  day.exercises.forEach(ex=>{
+    if(!dr.ex[ex.id])dr.ex[ex.id]=[];
+    while(dr.ex[ex.id].length<ex.sets)dr.ex[ex.id].push(newSet());
+  });
+  return dr;
+}
+function findEx(exId){for(const d of state.days){const e=d.exercises.find(x=>x.id===exId);if(e)return{day:d,ex:e}}return{}}
+const swap=(a,i,j)=>{if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]]};
+function migrate(s){
+  s.days.forEach(d=>d.exercises.forEach(e=>{if(e.rir===undefined)e.rir=''}));
+  Object.values(s.draft||{}).forEach(dr=>Object.values(dr.ex||{}).forEach(arr=>arr.forEach(x=>{if(x.rir===undefined)x.rir=''})));
+  return s;
+}
+
+/* ---------- Views ---------- */
+function vWorkout(){
+  if(!state.days.length)return empty('مفيش أيام في الجدول. روح لتبويب "الجدول" وضيف يوم.','📋');
+  const day=curDay();state.ui.dayId=day.id;const dr=getDraft(day);
+  let total=0,done=0;
+  day.exercises.forEach(ex=>(dr.ex[ex.id]||[]).forEach(s=>{total++;if(s.d)done++}));
+  const pct=total?Math.round(done/total*100):0;
+  let h=`<div class="chips">${state.days.map(d=>`<button class="chip ${d.id===day.id?'on':''}" data-act="pickDay" data-id="${d.id}">${esc(d.name)}</button>`).join('')}</div>
+  <div class="card row-between">
+    <label class="lbl">تاريخ التمرين<input type="date" class="inp" data-act="draftDate" value="${dr.date}"></label>
+    <div class="prog"><div class="row-between sm"><span class="mut">السيتات المكتملة</span><b>${done}/${total}</b></div><div class="bar"><i style="width:${pct}%"></i></div></div>
+  </div>`;
+  if(!day.exercises.length)h+=empty('اليوم ده فاضي، ضيف تمارين من تبويب "الجدول".','📋');
+  day.exercises.forEach((ex,i)=>{
+    const last=lastEntry(ex.name),sets=dr.ex[ex.id];
+    h+=`<div class="card">
+      <div class="ex-head"><div><div class="ex-name">${i+1}. ${esc(ex.name)}</div>
+      ${hasRir(ex.rir)?`<span class="badge">🎯 RIR ${esc(ex.rir)}</span>`:''}
+      <div class="mut sm">${last?`آخر مرة (${fmtDate(last.date)}): <span style="direction:ltr;display:inline-block">${last.sets.map(fmtSet).join(' • ')}</span>`:'أول مرة تسجل التمرين ده'}</div></div>
+      ${last?`<button class="btn ghost sm" data-act="fillLast" data-ex="${ex.id}">نفس آخر مرة</button>`:''}</div>
+      <div class="set-row head"><span>سيت</span><span>الوزن kg</span><span>العدات</span><span class="rh">RIR</span><span></span></div>
+      ${sets.map((s,si)=>{const p=last&&last.sets[si];
+        const rirPh=p&&hasRir(p.rir)?p.rir:(hasRir(ex.rir)?ex.rir:'–');
+        return `<div class="set-row ${s.d?'done':''}">
+        <span class="set-n">${si+1}</span>
+        <input class="inp num" type="number" inputmode="decimal" step="0.5" min="0" placeholder="${p?p.w:'0'}" value="${esc(s.w)}" data-act="setVal" data-ex="${ex.id}" data-i="${si}" data-k="w">
+        <input class="inp num" type="number" inputmode="numeric" min="0" placeholder="${p?p.r:'0'}" value="${esc(s.r)}" data-act="setVal" data-ex="${ex.id}" data-i="${si}" data-k="r">
+        <input class="inp num rir" type="number" inputmode="decimal" step="0.5" min="0" max="10" placeholder="${esc(rirPh)}" value="${esc(s.rir)}" data-act="setVal" data-ex="${ex.id}" data-i="${si}" data-k="rir">
+        <button class="tick" data-act="toggleSet" data-ex="${ex.id}" data-i="${si}">✓</button></div>`}).join('')}
+      <div class="ex-foot"><button class="btn ghost sm" data-act="addSet" data-ex="${ex.id}">+ سيت</button>${sets.length>1?`<button class="btn ghost sm" data-act="rmSet" data-ex="${ex.id}">− سيت</button>`:''}</div>
+    </div>`;
+  });
+  h+=`<div class="card"><textarea class="inp" rows="2" placeholder="ملاحظات على التمرينة (اختياري)" data-act="draftNote">${esc(dr.note)}</textarea></div>
+  <div class="actions"><button class="btn primary big" data-act="finish">💾 حفظ التمرين</button><button class="btn ghost" data-act="clearDraft">مسح</button></div>`;
+  return h;
+}
+
+function vPlan(){
+  let h=`<div class="card info">✏️ عدّل أسماء الأيام والتمارين وعدد السيتات وهدف الـ RIR، والتغييرات بتتحفظ تلقائي.<br><span class="mut sm">RIR = عدد العدات اللي كان ممكن تعملها زيادة قبل الفشل. تقدر تكتب رقم (0) أو مدى (1-2).</span></div>`;
+  state.days.forEach((d,di)=>{
+    h+=`<div class="card">
+      <div class="day-head"><input class="inp title" value="${esc(d.name)}" data-act="dayName" data-day="${d.id}">
+      <div class="icons"><button class="ic" data-act="dayMove" data-dir="-1" data-day="${d.id}" ${di===0?'disabled':''}>↑</button><button class="ic" data-act="dayMove" data-dir="1" data-day="${d.id}" ${di===state.days.length-1?'disabled':''}>↓</button><button class="ic danger" data-act="dayDel" data-day="${d.id}">🗑</button></div></div>
+      ${d.exercises.map((ex,ei)=>`<div class="plan-item">
+        <div class="plan-top"><span class="n">${ei+1}</span><input class="inp" value="${esc(ex.name)}" data-act="exName" data-ex="${ex.id}"><button class="ic danger" data-act="exDel" data-day="${d.id}" data-ex="${ex.id}">✕</button></div>
+        <div class="plan-bot">
+          <label class="mini">سيتات<input class="inp num" type="number" min="1" max="10" value="${ex.sets}" data-act="exSets" data-ex="${ex.id}"></label>
+          <label class="mini r">RIR<input class="inp num rir" type="text" inputmode="decimal" maxlength="5" placeholder="1-2" value="${esc(ex.rir)}" data-act="exRir" data-ex="${ex.id}"></label>
+          <div class="icons"><button class="ic" data-act="exMove" data-dir="-1" data-day="${d.id}" data-ex="${ex.id}" ${ei===0?'disabled':''}>↑</button><button class="ic" data-act="exMove" data-dir="1" data-day="${d.id}" data-ex="${ex.id}" ${ei===d.exercises.length-1?'disabled':''}>↓</button></div>
+        </div></div>`).join('')}
+      <button class="btn ghost sm" data-act="exAdd" data-day="${d.id}" style="margin-top:4px">+ إضافة تمرين</button>
+    </div>`;
+  });
+  return h+`<button class="btn primary" data-act="dayAdd">+ إضافة يوم جديد</button>`;
+}
+
+function vHistory(){
+  if(!state.logs.length)return empty('لسه مفيش تمارين متسجلة. سجل أول تمرينة من تبويب "التمرين".','🗓️');
+  const logs=sortedLogs(false);
+  const wk=new Date();wk.setDate(wk.getDate()-6);const wks=wk.toLocaleDateString('en-CA');
+  const last7=logs.filter(l=>l.date>=wks).length;
+  const tv=logs.reduce((a,l)=>a+volume(l),0);
+  let h=`<div class="stats"><div class="stat"><b>${logs.length}</b><span>إجمالي التمارين</span></div><div class="stat"><b>${last7}</b><span>آخر 7 أيام</span></div><div class="stat"><b>${tv>=10000?(tv/1000).toFixed(1)+'t':fmt(tv)}</b><span>إجمالي الحجم kg</span></div></div>`;
+  return h+logs.map(l=>`<details class="card log"><summary><div><b>${esc(l.dayName)}</b><div class="mut sm">${fmtDate(l.date)} • ${l.entries.length} تمارين • ${fmt(volume(l))} kg حجم</div></div><span class="chev">⌄</span></summary>
+    <div class="log-body">${l.entries.map(e=>`<div class="log-ex"><span>${esc(e.exName)}</span><span class="mut">${e.sets.map(fmtSet).join(' • ')}</span></div>`).join('')}
+    ${l.note?`<div class="note">📝 ${esc(l.note)}</div>`:''}
+    <div class="log-btns"><button class="btn ghost sm" data-act="logEdit" data-id="${l.id}">✏️ تعديل</button><button class="btn danger sm" data-act="logDel" data-id="${l.id}">🗑 حذف</button></div></div></details>`).join('');
+}
+
+let progHist=[],chart=null;
+function exNames(){const m=new Map();state.days.forEach(d=>d.exercises.forEach(e=>{if(!m.has(norm(e.name)))m.set(norm(e.name),e.name)}));state.logs.forEach(l=>l.entries.forEach(e=>{if(!m.has(norm(e.exName)))m.set(norm(e.exName),e.exName)}));return[...m.values()]}
+function vProgress(){
+  const names=exNames();progHist=[];
+  if(!names.length)return empty('مفيش تمارين لسه.','📈');
+  let sel=state.ui.progEx;if(!sel||!names.some(n=>norm(n)===norm(sel)))sel=names[0];state.ui.progEx=sel;
+  sortedLogs(true).forEach(l=>{const e=l.entries.find(e=>norm(e.exName)===norm(sel));if(!e||!e.sets.length)return;
+    const top=e.sets.reduce((a,s)=>s.w>a.w||(s.w===a.w&&s.r>a.r)?s:a,e.sets[0]);
+    const rirs=e.sets.filter(s=>hasRir(s.rir)).map(s=>+s.rir);
+    progHist.push({date:l.date,best:top.w,e1rm:Math.max(...e.sets.map(s=>s.w*(1+(s.r+(hasRir(s.rir)?+s.rir:0))/30))),vol:e.sets.reduce((a,s)=>a+s.w*s.r,0),sets:e.sets,avgRir:rirs.length?rirs.reduce((a,b)=>a+b,0)/rirs.length:null})});
+  let h=`<div class="card"><select class="inp" data-act="progSel">${names.map(n=>`<option ${norm(n)===norm(sel)?'selected':''}>${esc(n)}</option>`).join('')}</select></div>`;
+  if(!progHist.length)return h+empty('مفيش تسجيلات للتمرين ده لسه.','📈');
+  const best=Math.max(...progHist.map(x=>x.best)),be=Math.max(...progHist.map(x=>x.e1rm));
+  const diff=progHist[progHist.length-1].best-progHist[0].best;
+  h+=`<div class="stats"><div class="stat"><b>${best}</b><span>أعلى وزن kg</span></div><div class="stat"><b>${Math.round(be)}</b><span>1RM تقديري</span></div><div class="stat"><b style="color:${diff>=0?'var(--acc)':'var(--danger)'}">${diff>0?'+':''}${diff}</b><span>التغيير من البداية</span></div></div>
+  <div class="card"><div class="chart-box"><canvas id="chart"></canvas></div><p class="mut sm" style="margin-top:8px">الـ 1RM التقديري بيحسب الـ RIR كمان لو مسجله (العدات + RIR).</p></div>
+  <div class="card"><table><thead><tr><th>التاريخ</th><th>السيتات</th><th>متوسط RIR</th><th>الحجم</th></tr></thead><tbody>
+  ${[...progHist].reverse().map(x=>`<tr><td>${fmtDate(x.date)}</td><td class="ltr">${x.sets.map(fmtSet).join(' • ')}</td><td class="ltr" style="color:var(--rir)">${x.avgRir===null?'–':+x.avgRir.toFixed(1)}</td><td class="ltr">${fmt(x.vol)}</td></tr>`).join('')}</tbody></table></div>`;
+  return h;
+}
+function drawChart(){
+  const c=document.getElementById('chart');if(!c||!progHist.length)return;
+  if(typeof Chart==='undefined'){c.parentElement.innerHTML='<p class="mut empty">الرسم البياني محتاج اتصال بالإنترنت.</p>';return}
+  if(chart)chart.destroy();
+  const g={color:'#1c2430'},t={color:'#8a97a8',font:{family:'Cairo'}};
+  const anyRir=progHist.some(h=>h.avgRir!==null);
+  const ds=[
+    {label:'أعلى وزن',data:progHist.map(h=>h.best),borderColor:'#22d3a6',backgroundColor:'rgba(34,211,166,.15)',fill:true,tension:.35,pointRadius:4,yAxisID:'y'},
+    {label:'1RM تقديري',data:progHist.map(h=>Math.round(h.e1rm)),borderColor:'#3b82f6',borderDash:[5,5],tension:.35,pointRadius:3,yAxisID:'y'}];
+  if(anyRir)ds.push({label:'متوسط RIR',data:progHist.map(h=>h.avgRir===null?null:+h.avgRir.toFixed(1)),borderColor:'#a78bfa',tension:.35,pointRadius:3,spanGaps:true,yAxisID:'y2'});
+  const scales={x:{ticks:t,grid:g},y:{ticks:t,grid:g}};
+  if(anyRir)scales.y2={position:'right',min:0,suggestedMax:5,ticks:{...t,color:'#a78bfa'},grid:{display:false}};
+  chart=new Chart(c,{type:'line',data:{labels:progHist.map(h=>fmtDate(h.date)),datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:t}},scales}});
+}
+
+function vSettings(){
+  return `<div class="card"><div class="row-between"><div><b>⏱ وقت الراحة الافتراضي</b><div class="mut sm">التايمر بيشتغل لوحده لما تعلّم على سيت ✓</div></div>
+    <select class="inp" style="width:auto" data-act="restSel">${[45,60,90,120,150,180,240].map(s=>`<option value="${s}" ${state.rest==s?'selected':''}>${s>=60?Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+' د':s+' ث'}</option>`).join('')}</select></div></div>
+  <div class="card"><b>💾 النسخ الاحتياطي</b><p class="mut sm" style="margin:6px 0 12px">بياناتك متخزنة في المتصفح ده بس. اعمل نسخة احتياطية كل فترة، واستخدمها عشان تنقل بياناتك بين الموبايل والكمبيوتر.</p>
+    <div class="set-list"><button class="btn primary" data-act="export">⬇️ تحميل نسخة احتياطية (JSON)</button><button class="btn ghost" data-act="importBtn">⬆️ استرجاع من نسخة احتياطية</button></div></div>
+  <div class="card"><b>⚠️ منطقة الخطر</b><div class="set-list" style="margin-top:12px">
+    <button class="btn danger" data-act="resetProgram">إرجاع الجدول للأصلي (السجل مش هيتمسح)</button>
+    <button class="btn danger" data-act="wipe">مسح كل البيانات</button></div></div>
+  <p class="mut sm" style="text-align:center">Gym Tracker • ${state.logs.length} تمرينة متسجلة</p>`;
+}
+
+const TITLES={workout:'تمرين النهارده 🔥',plan:'تعديل الجدول',history:'سجل التمارين',progress:'تقدّمك',settings:'الإعدادات'};
+function render(){
+  const v=state.ui.view;
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+  const views={workout:vWorkout,plan:vPlan,history:vHistory,progress:vProgress,settings:vSettings};
+  app.innerHTML=`<h2 class="vt">${TITLES[v]}</h2>`+views[v]();
+  if(v==='progress')drawChart();
+}
+
+/* ---------- Actions ---------- */
+const clicks={
+  pickDay:t=>{state.ui.dayId=t.dataset.id;save();render();window.scrollTo(0,0)},
+  fillLast:t=>{const{day,ex}=findEx(t.dataset.ex);const last=lastEntry(ex.name);if(!last)return;const dr=getDraft(day);
+    dr.ex[ex.id]=last.sets.map(s=>({w:String(s.w),r:String(s.r),rir:hasRir(s.rir)?String(s.rir):'',d:false}));getDraft(day);save();render()},
+  toggleSet:t=>{const{day}=findEx(t.dataset.ex);const dr=getDraft(day);const s=dr.ex[t.dataset.ex][+t.dataset.i];
+    if(!s.d){const [wi,ri,rr]=t.closest('.set-row').querySelectorAll('input');
+      if(s.w===''&&wi.placeholder!=='0')s.w=wi.placeholder;
+      if(s.r===''&&ri.placeholder!=='0')s.r=ri.placeholder;
+      if(s.rir===''&&isNum(rr.placeholder))s.rir=rr.placeholder}
+    s.d=!s.d;save();render();if(s.d)startTimer()},
+  addSet:t=>{const{day}=findEx(t.dataset.ex);const arr=getDraft(day).ex[t.dataset.ex];const p=arr[arr.length-1];arr.push(newSet(p?p.w:''));save();render()},
+  rmSet:t=>{const{day}=findEx(t.dataset.ex);getDraft(day).ex[t.dataset.ex].pop();save();render()},
+  finish:()=>{
+    const day=curDay(),dr=getDraft(day),entries=[];
+    day.exercises.forEach(ex=>{const sets=(dr.ex[ex.id]||[]).filter(s=>s.w!==''||s.r!=='').map(s=>({w:+s.w||0,r:+s.r||0,rir:hasRir(s.rir)?+s.rir:null}));if(sets.length)entries.push({exId:ex.id,exName:ex.name,sets})});
+    if(!entries.length)return toast('سجّل على الأقل سيت واحد الأول','warn');
+    const prs=entries.filter(e=>{const b=bestWeight(e.exName);return b!==null&&Math.max(...e.sets.map(s=>s.w))>b}).map(e=>e.exName);
+    state.logs.push({id:uid(),ts:Date.now(),date:dr.date||today(),dayId:day.id,dayName:day.name,note:dr.note,entries});
+    delete state.draft[day.id];stopTimer();save();render();window.scrollTo(0,0);
+    toast(prs.length?`🏆 رقم قياسي جديد في: ${prs.join('، ')}`:'تم حفظ التمرين 💪 عاش!');
+  },
+  clearDraft:()=>{if(!confirm('تمسح كل اللي سجلته في التمرينة دي؟'))return;delete state.draft[curDay().id];save();render()},
+  dayAdd:()=>{state.days.push({id:uid(),name:'اليوم '+(state.days.length+1),exercises:[]});save();render();window.scrollTo(0,document.body.scrollHeight)},
+  dayDel:t=>{const d=state.days.find(x=>x.id===t.dataset.day);if(!confirm(`تحذف "${d.name}"؟ (السجل القديم هيفضل موجود)`))return;state.days=state.days.filter(x=>x!==d);delete state.draft[d.id];save();render()},
+  dayMove:t=>{const i=state.days.findIndex(x=>x.id===t.dataset.day);swap(state.days,i,i+ +t.dataset.dir);save();render()},
+  exAdd:t=>{const d=state.days.find(x=>x.id===t.dataset.day);const ex={id:uid(),name:'تمرين جديد',sets:2,rir:''};d.exercises.push(ex);save();render();
+    const el=app.querySelector(`[data-act="exName"][data-ex="${ex.id}"]`);el.focus();el.select()},
+  exDel:t=>{const d=state.days.find(x=>x.id===t.dataset.day);const ex=d.exercises.find(x=>x.id===t.dataset.ex);if(!confirm(`تحذف "${ex.name}"؟`))return;d.exercises=d.exercises.filter(x=>x!==ex);save();render()},
+  exMove:t=>{const d=state.days.find(x=>x.id===t.dataset.day);const i=d.exercises.findIndex(x=>x.id===t.dataset.ex);swap(d.exercises,i,i+ +t.dataset.dir);save();render()},
+  logDel:t=>{if(!confirm('تحذف التمرينة دي من السجل؟'))return;state.logs=state.logs.filter(l=>l.id!==t.dataset.id);save();render();toast('اتحذفت')},
+  logEdit:t=>{
+    const l=state.logs.find(x=>x.id===t.dataset.id);const day=state.days.find(d=>d.id===l.dayId);
+    if(!day)return toast('اليوم ده اتحذف من الجدول، مينفعش تعدّل التمرينة','warn');
+    if(state.draft[day.id]&&!confirm('فيه تمرينة مش متحفظة في اليوم ده، هتتمسح. تكمل؟'))return;
+    const dr={date:l.date,note:l.note||'',ex:{}};
+    day.exercises.forEach(ex=>{const e=l.entries.find(e=>e.exId===ex.id)||l.entries.find(e=>norm(e.exName)===norm(ex.name));
+      if(e)dr.ex[ex.id]=e.sets.map(s=>({w:String(s.w),r:String(s.r),rir:hasRir(s.rir)?String(s.rir):'',d:true}))});
+    state.draft[day.id]=dr;state.logs=state.logs.filter(x=>x!==l);state.ui.dayId=day.id;state.ui.view='workout';save();render();window.scrollTo(0,0);
+    toast('عدّل واضغط "حفظ التمرين" تاني');
+  },
+  export:()=>{const b=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`gym-backup-${today()}.json`;document.body.appendChild(a);a.click();a.remove();toast('تم تحميل النسخة ✅')},
+  importBtn:()=>$('#importFile').click(),
+  resetProgram:()=>{if(!confirm('ترجّع الجدول للأصلي؟ تعديلاتك على الجدول هتتمسح.'))return;state.days=buildDays();state.draft={};state.ui.dayId=null;save();render();toast('رجع الجدول الأصلي')},
+  wipe:()=>{if(!confirm('متأكد؟ كل البيانات والسجل هيتمسحوا نهائياً!'))return;state=buildDefault();state.ui.view='settings';save();render();toast('اتمسح كل حاجة')}
+};
+
+app.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(t&&clicks[t.dataset.act]&&!t.disabled)clicks[t.dataset.act](t,e)});
+app.addEventListener('input',e=>{
+  const t=e.target,a=t.dataset.act;
+  if(a==='setVal'){const{day}=findEx(t.dataset.ex);getDraft(day).ex[t.dataset.ex][+t.dataset.i][t.dataset.k]=t.value;save()}
+  else if(a==='draftNote'){getDraft(curDay()).note=t.value;save()}
+  else if(a==='dayName'){state.days.find(x=>x.id===t.dataset.day).name=t.value;save()}
+  else if(a==='exName'){findEx(t.dataset.ex).ex.name=t.value;save()}
+  else if(a==='exRir'){findEx(t.dataset.ex).ex.rir=t.value.trim();save()}
+});
+app.addEventListener('change',e=>{
+  const t=e.target,a=t.dataset.act;
+  if(a==='draftDate'){getDraft(curDay()).date=t.value||today();save()}
+  else if(a==='exSets'){const v=Math.min(10,Math.max(1,parseInt(t.value)||1));findEx(t.dataset.ex).ex.sets=v;t.value=v;save()}
+  else if(a==='progSel'){state.ui.progEx=t.value;save();render()}
+  else if(a==='restSel'){state.rest=+t.value;save();toast('تم الحفظ')}
+});
+$('#importFile').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{const d=JSON.parse(await f.text());if(!Array.isArray(d.days)||!Array.isArray(d.logs))throw 0;
+    if(!confirm('البيانات الحالية هتتبدل بالنسخة دي. تكمل؟'))return;
+    state=migrate(Object.assign(buildDefault(),d,{ui:Object.assign(buildDefault().ui,d.ui||{},{view:'workout'})}));save();render();toast('تم الاسترجاع ✅')}
+  catch(err){toast('الملف ده مش نسخة احتياطية صحيحة','warn')}
+  e.target.value='';
+});
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>{state.ui.view=b.dataset.view;save();render();window.scrollTo(0,0)}));
+
+/* ---------- Rest Timer ---------- */
+let tEnd=0,tInt=null;
+function startTimer(sec){tEnd=Date.now()+(sec||state.rest)*1000;clearInterval(tInt);tInt=setInterval(tick,250);tick()}
+function stopTimer(){clearInterval(tInt);tInt=null;updTimer(null)}
+function tick(){const left=Math.ceil((tEnd-Date.now())/1000);if(left<=0){stopTimer();beep();navigator.vibrate&&navigator.vibrate([200,100,200]);toast('⏰ خلصت الراحة، يلا السيت اللي بعده!');return}updTimer(left)}
+function updTimer(left){const m=$('#tMain'),run=left!==null;m.textContent=run?`⏱ ${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`:'⏱ راحة';m.classList.toggle('run',run);$('#tPlus').classList.toggle('hide',!run);$('#tStop').classList.toggle('hide',!run)}
+function beep(){try{const ac=new(window.AudioContext||window.webkitAudioContext)();[0,.3,.6].forEach(t=>{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=880;o.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(.25,ac.currentTime+t);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+t+.22);o.start(ac.currentTime+t);o.stop(ac.currentTime+t+.25)})}catch(e){}}
+$('#tMain').onclick=()=>{if(!tInt)startTimer()};
+$('#tPlus').onclick=()=>{tEnd+=15000;tick()};
+$('#tStop').onclick=stopTimer;
+
+/* ---------- Init ---------- */
+(async()=>{
+  $('#hdate').textContent=new Date().toLocaleDateString('ar-EG-u-nu-latn',{weekday:'long',day:'numeric',month:'long'});
+  const d=await Store.get();
+  state=d&&Array.isArray(d.days)?migrate(Object.assign(buildDefault(),d,{ui:Object.assign(buildDefault().ui,d.ui||{})})):buildDefault();
+  render();
+})();
+
+/* ---------- PWA ---------- */
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
